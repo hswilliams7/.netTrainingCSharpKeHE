@@ -1,0 +1,162 @@
+using System;
+using System.Collections.Generic;
+using System.Timers;
+
+//Written by HSW, 61422
+
+class MainClass
+{//Conway's Game of Life
+    enum cell { dead, alive, tempD, tempA, };
+    static int gen = 0;
+    static bool iterate = false;
+    static void Life(List<List<int>> life)
+    {
+        int y = 1;
+        bool addTop = true;
+        bool addBot = true;
+        for (int i = 1; i < life.Count - 1; i++)//If any live cell is nearing the edge, the list will gain an index in both dimensions to remain square
+        {
+            for (int a = 1; a < life[0].Count - 1; a++)
+            {
+                if (addTop)
+                {
+                    if (i == 1 || a == 1)
+                    {
+                        if (life[i][a] == (int)cell.alive)
+                        {
+                            addTop = false;
+                            life.Insert(0, new List<int>());
+                            for (int w = 0; w < life[1].Count; w++)
+                                life[0].Add(0);
+                            for (int w = 0; w < life.Count; w++)
+                                life[w].Insert(0, 0);
+                        }
+                    }
+                }
+                if (addBot)
+                {
+                    if (i == life.Count - 2 || a == life[0].Count - 2)
+                    {
+                        if (life[i][a] == (int)cell.alive)
+                        {
+                            addBot = false;
+                            life.Add(new List<int>());
+                            for (int w = 0; w < life[1].Count; w++)
+                                life[life.Count - 1].Add(0);
+                            for (int w = 0; w < life.Count; w++)
+                                life[w].Add(0);
+                        }
+                    }
+                }
+                int count = -1;
+                for (int w = -1; w <= 1; w++)
+                {
+                    for (int z = -1; z <= 1; z++)//Based on Conway's rules, the cells take up temporary states so as not to disrupt the ongoing process
+                    {
+                        if (life[(i + w)][(a + z)] == (int)cell.alive || life[(i + w)][(a + z)] == (int)cell.tempD)
+                            ++count;
+                    }
+                }
+                if ((count < 2) || (count > 3))//Cells are switched to either dead or alive based on temp states
+                {
+                    if (life[i][a] != (int)cell.dead)
+                        life[i][a] = (int)cell.tempD;
+                }
+                else if (count == 2) //2-3 live neighbors lives on
+                {
+                    if (life[i][a] != (int)cell.alive)
+                        life[i][a] = (int)cell.tempA;
+                }
+                else if (count == 3) //overpopulation
+                {
+                    if (life[i][a] != (int)cell.alive)
+                        life[i][a] = (int)cell.dead;
+                }
+            }
+        }
+        for (int i = 0; i < life.Count - 1; i++)//The cells are converted into the proper format
+        {
+            for (int a = 0; a < life[0].Count - 1; a++)
+            {
+                int x = life[i][a];
+                if (x == (int)cell.tempD)
+                    x = (int)cell.dead;
+                if (x == (int)cell.tempA)
+                    x = (int)cell.alive;
+                life[i][a] = x;
+            }
+        }
+        Console.WriteLine("\n-----------GENERATION {0}------------------", gen);
+        Console.Write("\t");
+        foreach (List<int> x in life)
+        {
+            foreach (int i in x)
+            {
+                Console.Write(i + " ");
+                if (y++ % life[0].Count == 0 && life.IndexOf(x) != life.Count - 1)
+                    Console.Write("\n\t");
+            }
+        }
+    }
+    static void Main()
+    {
+        Console.Write("Welcome! Please enter the Number of Generations you want to play: ");//How many iterations of the list will be made
+        int limit = Convert.ToInt32(Console.ReadLine());
+        Timer t = new Timer(2500);//Seperates iterations by 2.5 seconds so that it is easier to see them
+        int[,] b =    {{0,0,0,0,0,0,0,0,0,0},//The array is easier to visually manipulate values within the script itself
+                       {0,0,0,0,0,0,0,0,0,0},//The initial pattern is made here
+                       {0,0,0,0,0,0,0,0,0,0},
+                       {0,0,0,0,0,1,0,0,0,0},
+                       {0,0,0,0,0,0,1,0,0,0},
+                       {0,0,0,0,1,1,1,0,0,0},
+                       {0,0,0,0,0,0,0,0,0,0},
+                       {0,0,0,0,0,0,0,0,0,0},
+                       {0,0,0,0,0,0,0,0,0,0},
+                       {0,0,0,0,0,0,0,0,0,0}};
+        List<List<int>> life = new List<List<int>>();//The array is converted into a list to be used hereafter
+        for (int i = 0; i < b.GetLength(0); i++)
+        {
+            life.Add(new List<int>());
+        }
+
+        int y = 1;
+        foreach (int i in b)
+        {
+            life[(y - 1)].Add(i);
+            if (y++ % b.GetLength(0) == 0)
+            {
+                y = 1;
+            }
+        }
+        y = 1;
+        Console.WriteLine("\n-----------GENERATION {0}------------------", gen);
+        Console.Write("\t");
+        foreach (List<int> i in life)
+        {
+            foreach (int c in i)
+            {
+                Console.Write(c + " ");
+                if (y++ % life[0].Count == 0 && life.IndexOf(i) != life.Count - 1)
+                    Console.Write("\n\t");
+            }
+        }
+        t.Elapsed += new ElapsedEventHandler(timer_Tick);
+        t.Start();
+        while (gen < limit + 1)//stops the timer method when the number of desired generations is reached
+        {
+            if (iterate == true)
+            {
+                Life(life);
+                iterate = false;
+            }
+            if (gen == limit)
+                t.Stop();
+        }
+    }
+    static void timer_Tick(object sender, EventArgs e)
+    {
+        iterate = true;
+        ++gen;
+
+    }
+}
