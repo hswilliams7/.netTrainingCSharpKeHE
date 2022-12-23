@@ -49,8 +49,9 @@ namespace ConsoleApp1
             Console.WriteLine($"Well done! The answer is {returnValue}");
             Console.WriteLine("Your guesses were");
             Console.WriteLine(string.Join("\n", guessList.ToArray()));
-            Console.ReadLine();
             Console.WriteLine("Thanks for playing!");
+            Console.ReadLine();
+
         }
     }
 }
